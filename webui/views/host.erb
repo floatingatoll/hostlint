@@ -1,5 +1,4 @@
 <h3> hostlint checks for <%= @host.cluster %>::<%= @host %> (<%= @host.report_time  %>)</h3>
-<br>
 
 <div id="failing">
   <% @host.checks_failing.each do |c| %>
@@ -7,8 +6,6 @@
   <pre>
     <%= c.body %>
   </pre>
-  <br>
-  <br>
   <% end %>
 </div>
 
@@ -18,8 +15,6 @@
   <pre>
     <%= c.body %>
   </pre>
-  <br>
-  <br>
   <% end %>
 </div>
 

@@ -8,12 +8,26 @@ else
 end %>
 <br>
 
+<% if failing.size > 0 %>
 <div id="failing">
-  <%= failing.map { |h|
-      "#{hostlink(h)} #{status(Host::FAIL)} <br> <pre>#{h.check(@check).body}</pre><br><br><br>" } %>
+  <% failing.each do |h| %>
+  <%= hostlink(h) %> <%= status(Host::FAIL) %>
+  <br>
+  <% if h.check(@check).body.size > 0 %>
+  <pre><%= h.check(@check).body %></pre>
+  <% end %>
+  <% end %>
 </div>
+<% end %>
 
+<% if succeeding.size > 0 %>
 <div id="succeeding">
-  <%= succeeding.map { |h|
-      "#{hostlink(h)} #{status(Host::OK)} <br> <pre>#{h.check(@check).body}</pre><br><br><br>" } %>
+  <% succeeding.each do |h| %>
+  <%= hostlink(h) %> <%= status(Host::OK) %>
+  <br>
+  <% if h.check(@check).body.size > 0 %>
+  <pre><%= h.check(@check).body %></pre>
+  <% end %>
+  <% end %>
 </div>
+<% end %>
