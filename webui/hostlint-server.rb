@@ -74,6 +74,9 @@ module Dash
     end
 
     get '/status/:status/?' do
+      unless [Host::OK, Host::FAIL].member?(params[:status])
+        raise "unknown status #{params[:status]}"
+      end
       erb :status
     end
 
