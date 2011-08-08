@@ -1,0 +1,19 @@
+<h3><%= @check %></h3>
+<%= failing = Host.hosts_failing(@check)
+    succeeding = Host.hosts_succeeding(@check)
+    if failing.size > 0
+"#{failing.size}/#{failing.size + succeeding.size} hosts failing"
+else
+"all hosts pass"
+end %>
+<br>
+
+<div id="failing">
+  <%= failing.map { |h|
+      "#{hostlink(h)} #{status(Host::FAIL)} <br> <pre>#{h.check(@check).body}</pre><br><br><br>" } %>
+</div>
+
+<div id="succeeding">
+  <%= succeeding.map { |h|
+      "#{hostlink(h)} #{status(Host::OK)} <br> <pre>#{h.check(@check).body}</pre><br><br><br>" } %>
+</div>

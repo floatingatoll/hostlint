@@ -1,0 +1,25 @@
+#!/usr/bin/env ruby
+###############################################################################
+# genreports [#clusters] [#hosts]
+# takes yaml and generates a bunch of similar hostlint reports, then posts it
+###############################################################################
+require "yaml"
+require 'net/http'
+
+clusters = (ARGV[0]||1).to_i
+hosts = (ARGV[1]||1).to_i
+
+a = YAML.load(File.read('gendata.yml'))
+
+clusters.times do |i|
+  hosts.times do |j|
+    a[:cluster] = "cluster#{i}"
+    a[:host] = "host#{j}"
+    req = Net::HTTP::Post.new('/')
+    req.body = a.to_yaml
+    req.content_type = "application/x-yaml"
+    Net::HTTP.new('localhost', 9998).start { |http| http.request(req) }
+  end
+end
+
+###############################################################################

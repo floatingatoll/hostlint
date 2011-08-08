@@ -1,0 +1,46 @@
+<html>
+  <head><%= css_url %></head>
+  <body>
+    <div id="wrap">
+
+      <div id="nav">
+        <ul>
+          <li><a href="/">overview</a></li>
+          <br>
+          Cluster Views:
+          <br>
+          <% @clusters.sort.each do |cluster| %>
+          <li><a href="<%= cluster_link(cluster) %>"><%= cluster %></a></li>
+          <% end %>
+          <br>
+          Checks:
+          <br>
+          <% Host.checks.each do |check| %>
+          <li><%= checklink(check) %></li>
+          <% end %>
+          <br>
+          By status:
+          <br>
+          <%= status_selector %>
+          <br>
+
+          <br>
+          Jump to Host:
+          <br>
+          <%= hosts_selector(@hosts) %>
+          <br>
+          <br>
+        </ul>
+      </div>
+
+
+      <div id="main">
+        <%= yield %>
+      </div>
+
+    </div>
+  </body>
+  <div id="footer">
+    generated <%= @request_time %> by <a href="">hostlint</a> v<%= 0 %>
+  </div>
+</html>

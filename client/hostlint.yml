@@ -1,0 +1,10 @@
+:main:
+  :colo: cluster1
+  :host: mach1
+  # check_dir = "/etc/hostlint.d"
+  :check_dir: "./tests"
+  :log_dir: "." # /var/log/hostlint
+
+# :transport:
+#   amqp
+#   email

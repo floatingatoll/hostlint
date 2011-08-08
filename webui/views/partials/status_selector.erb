@@ -1,0 +1,7 @@
+<select onchange="window.open(this.options[this.selectedIndex].value,'_top')">
+  <option value="">-status-</option>
+  <% ["OK", "FAILING", "CHECK_FAILED"].each do |s|
+     value = append_query_string("/status/#{s}") %>
+  <option value="<%= value %>" <%= "selected=\"selected\"" if @status == s %>><%= s %></option>
+  <% end %>
+</select>

@@ -1,0 +1,26 @@
+<h3> hostlint checks for <%= @host.cluster %>::<%= @host %> (<%= @host.report_time  %>)</h3>
+<br>
+
+<div id="failing">
+  <% @host.checks_failing.each do |c| %>
+  <%= checklink(c.name) %> <%= status(c.status) %>
+  <pre>
+    <%= c.body %>
+  </pre>
+  <br>
+  <br>
+  <% end %>
+</div>
+
+<div id="succeeding">
+  <% @host.checks_succeeding.each do |c| %>
+  <%= checklink(c.name) %> <%= status(c.status) %>
+  <pre>
+    <%= c.body %>
+  </pre>
+  <br>
+  <br>
+  <% end %>
+</div>
+
+<a href="fixme">download YAML</a>

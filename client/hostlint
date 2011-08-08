@@ -1,0 +1,186 @@
+#!/usr/bin/env ruby
+###############################################################################
+# hostlint-client
+###############################################################################
+# raise "need to run as root" unless Process.euid == 0
+
+require "thread"
+require "optparse"
+require "yaml"
+require "logger"
+require "stringio"
+require "rubygems"
+require "open4"
+
+###############################################################################
+# monkeypatch etc.
+###############################################################################
+
+module Enumerable
+  # asynchronous each (requiring a finite collection)
+  # test case:  (1..100).each_with_threads(0) {|x| sleep rand(); puts x}
+  def each_with_threads (max_threads=1)
+    size = 0 #lame
+    q = Queue.new
+    self.each {|x| q.enq(x); size += 1}
+    if max_threads == 0
+      max_threads = size
+    end
+    threads = []
+    max_threads.times do
+      threads << Thread.new {while !q.empty?; yield q.deq end}
+    end
+    threads.each {|thr| thr.join}
+  end
+end
+
+class Queue
+  # obviously only works once
+  def to_ary
+    a = []
+    a << self.pop while self.size > 0
+    a
+  end
+end
+
+def logd (string) @logger.add(Logger::DEBUG, string, "")  if @verbose ; end
+def logi (string) @logger.add(Logger::INFO,  string, " ") if @verbose ; end
+def loge (string) @logger.add(Logger::ERROR, string, "")  if @verbose ; end
+def logw (string) @logger.add(Logger::WARN,  string, " ") if @verbose ; end
+
+###############################################################################
+# parse configuration
+###############################################################################
+
+optparse = OptionParser.new do |o|
+  o.on("-c", "--config-file FILE",
+    "Specifies the location of the config file.") do |arg|
+    @config_file = arg
+  end
+  o.on("-d", "--check-dir DIR",
+    "Specifies the directory of checks to run.") do |arg|
+    @check_dir = arg
+  end
+  o.on("-j", "--jobs N",
+    "Specifies the number of jobs (checks) to run simultaneously. (0 for unbounded)") do |arg|
+    @jobs = arg.to_i
+  end
+  o.on("-v", "--verbose", "Print debugging information") do # levels
+    @verbose = true
+    @logger = Logger.new(STDOUT)
+    @logger.formatter = proc do |severity, datetime, progname, msg|
+      "#{severity}: #{msg}\n"
+    end
+  end
+end
+
+optparse.parse!
+
+logd "parsed command line"
+
+@config_file ||= "hostlint.yml"
+
+raise "config file not found: #{@config}" unless File.exists?(@config_file)
+
+conf = YAML.load(File.read(@config_file))
+
+raise "no :main key in #{@config_file}" unless conf[:main]
+
+@check_dir ||= conf[:main][:check_dir]
+@log_dir   ||= conf[:main][:log_dir]
+@host        = conf[:main][:host]
+@cluster     = conf[:main][:colo]
+@jobs      ||= 1
+
+raise "#{@check_dir} not a directory" unless File.directory?(@check_dir)
+raise "#{@log_dir} not a directory" unless File.directory?(@log_dir)
+
+logd "info:\n\tcheck_dir: #{@check_dir}" +
+  "\n\tlog_dir: #{@log_dir}"+ "\n\thost: #{@host}" +
+  "\n\tcluster: #{@cluster}\n\tjobs: #{@jobs}"
+
+###############################################################################
+# main logic
+###############################################################################
+
+def parse_output (str)
+  parse = str.match(/([^:]+)\s*:\s*\[(OK|FAIL)\]/)
+  parse or raise "can't parse"
+  [parse[1], parse[2]]
+end
+
+def fail_report (fname, status, out, err)
+  {:filename => fname,
+    :status => status.exitstatus,
+    :stdout => out,
+    :stderr => err}
+end
+
+def success_report
+end
+
+checks = Queue.new
+failed = Queue.new
+skipped = Queue.new
+
+logd "running hostlint checks"
+report_begin = Time.now
+
+Dir.glob("#{@check_dir}/*").each_with_threads(@jobs) do |f|
+  fname = File.basename(f)
+  if File.executable?(f)
+    out = ""
+    err = ""
+    status = Open4::popen4(f) do |pid, stdin, stdout, stderr|
+      out = stdout.read
+      err = stderr.read
+    end
+
+    if status.exitstatus != 0
+      loge "#{fname} failed"
+      failed.push(fail_report(fname, status, out, err))
+    elsif !err.empty?
+      logw "#{fname} output to stderr but exited normally"
+      failed.push(fail_report(fname, status, out, err))
+    else
+      logd "#{fname} completed successfully"
+      begin
+        check_name, status = parse_output(out)
+        checks.push({check_name.to_sym => {
+                        :status => status,
+                        :body => out.sub(out.first, ''),
+                      }})
+      rescue Exception => e
+        loge "failed to parse output of #{fname}"
+        failed.push(fail_report(fname, status, out, err))
+      end
+    end
+  else
+    logw "#{fname} is not executable, skipping..."
+    skipped.push({:filename => fname,
+                   :permissions => File.stat(f).mode.to_s(8)[-4..-1]})
+  end
+end
+
+report_end = Time.now
+
+checks = checks.to_ary
+failed = failed.to_ary
+skipped = skipped.to_ary
+
+report = {:date => report_end, :checks => checks, :failed => failed,
+  :host => @host, :skipped => skipped, :cluster => @cluster}.to_yaml
+
+# logd "report generated:\n" + report + "\n"
+
+logi "hostlint check complete (#{report_end - report_begin} s)"
+logi "#{checks.size + failed.size + skipped.size} checks run, " +
+  "#{checks.size} succeeded, #{failed.size} failed, #{skipped.size} skipped"
+
+File.open(
+     File.join(@log_dir,
+          "hostlint-report#{Time.now.strftime('%Y%m%d')}.yml"), "w") do |f|
+  f.puts report
+end
+
+###############################################################################

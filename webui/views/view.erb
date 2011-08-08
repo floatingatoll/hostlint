@@ -1,0 +1,22 @@
+<h2>hostlint checks</h2>
+
+<% Host.checks.each do |c| %>
+<%= checklink(c) %> <%= stats_helper(c) %>
+
+<br>
+<% end %>
+
+<br>
+<br>
+<br>
+<h3>clusters :: hosts</h3>
+<% map = Hash.new([])
+   @hosts.each { |h| map[h.cluster] = map[h.cluster] + [h] }
+   map.sort.each do |k, v| %>
+
+<h3><a href="/cluster/<%= append_query_string(k) %>"><%= k %></h3>
+<%= v.sort.collect do |h|
+    href = append_query_string("/host/#{h.cluster}/#{h}")
+    "<li><a href=\"#{href}\">#{h}</a> #{host_helper(h)}</li>"
+    end %>
+<% end %>

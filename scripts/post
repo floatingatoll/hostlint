@@ -1,0 +1,14 @@
+#!/usr/bin/env ruby
+###############################################################################
+# post ARGV[0] (yaml file) to the hostlint web ui
+###############################################################################
+require 'net/http'
+
+req = Net::HTTP::Post.new('/')
+req.body = File.read(ARGV[0])
+req.content_type = "application/x-yaml"
+Net::HTTP.new('localhost', 9998).start {|http|
+  http.request(req)
+}
+
+###############################################################################

@@ -1,0 +1,61 @@
+--- 
+:failed: 
+- :status: 1
+  :stdout: |+
+    test_success: [OK]
+    body
+    
+  :stderr: ""
+  :filename: fail2.sh
+- :status: 0
+  :stdout: |
+    --INTROIBO AD ALTARE DEI.
+
+  :stderr: ""
+  :filename: bad_output.sh
+- :status: 1
+  :stdout: ""
+  :stderr: ""
+  :filename: fail.sh
+- :status: 0
+  :stdout: ""
+  :stderr: ""
+  :filename: no_output.sh
+- :status: 1
+  :stdout: |
+    ruby: [OK]
+    --Come up, Kinch! Come up, you fearful jesuit!
+
+  :stderr: |
+    shoot
+
+  :filename: ruby.rb
+:date: 2011-08-08 13:45:12.443400 -07:00
+:cluster: cluster1
+:skipped: []
+
+:host: mach1
+:checks: 
+- :succeed_ok_no_body: 
+    :status: OK
+    :body: ""
+- :test_success: 
+    :status: OK
+    :body: |
+      --Thanks, old chap, he cried briskly. That will do nicely. Switch off the
+      current, will you?
+
+- :test_failure: 
+    :status: FAIL
+    :body: |
+      Buck Mulligan peeped an instant under the mirror and then covered
+      the bowl smartly.
+
+- :"python.works": 
+    :status: OK
+    :body: |
+      STATELY, PLUMP BUCK MULLIGAN CAME FROM THE STAIRHEAD, bearing a bowl of
+      lather on which a mirror and a razor lay crossed. A yellow dressinggown,
+      ungirdled, was sustained gently behind him by the mild morning air. He
+      held the bowl aloft and intoned:
+
