@@ -17,7 +17,7 @@ module Dash::Helpers
   end
 
   def status(str)
-    j = str =~ /OK/ ? "ok" : "fail"
+    j = str =~ Regexp.new(Host::OK) ? "ok" : "fail"
     "<#{j}>#{str}</#{j}> #{bugzilla_link if j=="fail" }"
   end
 
