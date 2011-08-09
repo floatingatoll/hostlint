@@ -179,7 +179,7 @@ logi "#{checks.size + failed.size + skipped.size} checks run, " +
 
 File.open(
      File.join(@log_dir,
-          "hostlint-report#{Time.now.strftime('%Y%m%d')}.yml"), "w") do |f|
+          "hostlint-report#{report_end.strftime('%Y%m%d')}.yml"), "w") do |f|
   f.puts report
 end
 
