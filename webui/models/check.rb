@@ -11,9 +11,9 @@ module Dash::Models
       @body = yaml.values.first[:body]
     end
     def match (regexp)
-      @name =~ regexp ||
-        @status =~ regexp ||
-        @body =~ regexp
+      @name.to_s =~ regexp ||
+        @status.to_s =~ regexp ||
+        @body.to_s =~ regexp
     end
   end
 end

@@ -68,6 +68,17 @@ module Dash::Helpers
     end
   end
 
+  def check_status_to_hosts_map
+    bucket = {}
+    @hosts.each do |h|
+      type = @status == Host::OK ? :checks_succeeding : :checks_failing
+      h.send(type).each do |c|
+        bucket[c.name] ||= []
+        bucket[c.name] << h
+      end
+    end
+    bucket
+  end
 end
 
 ###############################################################################

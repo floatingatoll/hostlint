@@ -1,7 +1,12 @@
-<h3>checks matching /<%= params["keyword"] %>/</h3>
+<h3><%= @banner %> checks matching /<%= params["keyword"] %>/</h3>
 
-<% @checks.each do |c| %>
+<% @checks.each do |host, checks| %>
+<%= checks.size %>
 <div>
-  <%= checklink(c) %>  <%= stats_helper(c) %>
+
+  <% checks.each do |c| %>
+  <%= hostlink(host) %>::<%= checklink(c.name) %> <%= status(c.status) %>
+  <pre><%= c.body %></pre>
+  <% end %>
 </div>
 <% end %>

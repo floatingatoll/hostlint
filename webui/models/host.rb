@@ -12,19 +12,22 @@ module Dash::Models
     @@check_map = {}
 
     class << self
-      def hosts_failing (check)
+      def hosts_failing(check)
         @@check_map[check][FAIL]||[]
       end
-      def hosts_succeeding (check)
+
+      def hosts_succeeding(check)
         @@check_map[check][OK]||[]
       end
 
       def checks
         @@checks
       end
+
       def check_map
         @@check_map
       end
+
       def find_by_name_and_cluster(name, cluster)
         Host.each do |host_name, host|
           next unless host_name = name
@@ -44,7 +47,7 @@ module Dash::Models
 
     attr_reader :host_name, :checks, :cluster, :status_map, :report, :report_time
 
-    def check (check)
+    def check(check)
       @checks.find { |c| c.name == check }
     end
 

@@ -74,8 +74,9 @@ module Dash
     end
 
     get '/status/:status/?' do
-      unless [Host::OK, Host::FAIL].member?(params[:status])
-        raise "unknown status #{params[:status]}"
+      @status = params[:status]
+      unless [Host::OK, Host::FAIL].member?(@status)
+        raise "unknown status #{@status}"
       end
       erb :status
     end
@@ -88,18 +89,29 @@ module Dash
           [h, h.checks.find_all { |c| c.match(regexp) }]
         end.find_all { |h, c| c }
         @match_hosts = @hosts.find_all { |h| h.name =~ regexp }
-        @checks = Host.checks.find_all { |h| h.to_s =~ regexp }
+        @checks = Host.checks.find_all { |c| c.to_s =~ regexp }
         erb :"search_all"
       when "1" # hosts
         @match_hosts = @hosts.find_all { |h| h.name =~ regexp }
         erb :"search_host"
       when "2" # checks
-        @checks = Host.checks.find_all { |c| c.match(regexp) }
+        @banner = ""
+        @checks = @hosts.map do |h|
+          [h, h.checks.find_all { |c| c.match(regexp) }]
+        end.find_all { |h, c| c }
         erb :"search_checks"
       when "3" # failing
-        params["keyword"]
+        @banner = "failing"
+        @checks = @hosts.map do |h|
+          [h, h.checks.find_all { |c| c.status == Host::FAIL && c.match(regexp) }]
+        end.find_all { |h, c| c.size > 0 }
+        erb :"search_checks"
       when "4" # succeeding
-        params["keyword"]
+        @banner = "succeeding"
+        @checks = @hosts.map do |h|
+          [h, h.checks.find_all { |c| c.status == Host::OK && c.match(regexp) }]
+        end.find_all { |h, c| c.size > 0 }
+        erb :"search_checks"
       end
     end
 

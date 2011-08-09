@@ -1,17 +1,6 @@
-<h3><%= params[:status] == Host::OK ? "passing" : "failing" %> checks</h3>
+<h3><%= @status == Host::OK ? "passing" : "failing" %> checks</h3>
 
-<% bucket = {}
-   @hosts.each do |h|
-   type = params[:status] == Host::OK ? :checks_succeeding : :checks_failing
-   h.send(type).each do |c|
-   bucket[c.name] ||= []
-   bucket[c.name] << h
-   end
-   end
-   %>
-
-
-<% bucket.each do |k, v| %>
+<% check_status_to_hosts_map.each do |k, v| %>
 <%= k %>
 <% v.each do |h| %>
 <li><%= hostlink(h) %></li>
