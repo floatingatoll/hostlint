@@ -17,6 +17,8 @@ clusters.times do |i|
     a[:host] = "host#{j}"
     a[:checks].each do |c|
       c.values.first[:status] = rand(2) == 0 ? "OK" : "FAIL"
+      c.values.first[:body] = \
+      "cluster #{i} host #{j} body status #{c.values.first[:status]}"
     end
     req = Net::HTTP::Post.new('/')
     req.body = a.to_yaml
