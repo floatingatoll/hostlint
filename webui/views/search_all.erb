@@ -1,7 +1,7 @@
 <h2>search results for /<%= params["keyword"] %>/</h2>
 
 <h3>hosts</h3>
-<% @match_hosts.each do |h| %>
+<% @match_hosts.sort.each do |h| %>
 <div>
   <%= hostlink(h) %> <%= host_helper(h) %>
 </div>

@@ -1,7 +1,7 @@
 <h3>Hosts for cluster <%= params[:cluster] %></h3>
 
 <%= f = s = 0
-    Host.find_by_cluster(params[:cluster]).each do |h|
+    Host.find_by_cluster(params[:cluster]).sort.each do |h|
     f += h.checks_failing.size
     s += 1
     end
@@ -11,7 +11,7 @@ else
 "all checks passed"
 end %>
 
-<% Host.find_by_cluster(params[:cluster]).each do |h| %>
+<% Host.find_by_cluster(params[:cluster]).sort.each do |h| %>
 <div>
   <%= hostlink(h) %> <%= host_helper(h) %>
 </div>

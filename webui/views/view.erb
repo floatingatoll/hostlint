@@ -7,7 +7,7 @@
 
 <h3>clusters :: hosts</h3>
 <% map = Hash.new([])
-   @hosts.each { |h| map[h.cluster] = map[h.cluster] + [h] }
+   @hosts.sort.each { |h| map[h.cluster] = map[h.cluster] + [h] }
    map.sort.each do |k, v| %>
 
 <h3><a href="/cluster/<%= append_query_string(k) %>"><%= k %></h3>

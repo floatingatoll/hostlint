@@ -1,6 +1,6 @@
 <h3>hosts matching /<%= params["keyword"] %>/</h3>
 
-<% @match_hosts.each do |h| %>
+<% @match_hosts.sort.each do |h| %>
 <div>
   <%= hostlink(h) %> <%= host_helper(h) %>
 </div>
