@@ -66,6 +66,7 @@ module Dash::Models
     end
 
     def initialize(yaml)
+      puts yaml.class
       # needed to disambiguate
       super(yaml[:host]+'.'+yaml[:cluster])
       @hostname = yaml[:host]

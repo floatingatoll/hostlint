@@ -26,8 +26,6 @@ module Dash
     reports = []
     hosts = Set.new
     clusters = Set.new
-    @@reports = []
-    @@statindex = {}
 
     post '/' do
       puts 'processing data...'
@@ -36,7 +34,6 @@ module Dash
         r = YAML.load(y)
         hosts << Host.new(r)
         clusters << r[:cluster]
-        @@reports << r
       end
       reports.pop
     end
@@ -45,12 +42,16 @@ module Dash
       @request_time = Time.now
       @hosts = hosts
       @clusters = clusters
-      @stats = @@statindex
-      @reports = @@reports
     end
 
     get '/' do
       erb :view
+    end
+
+    # fixme include timetamp in filename
+    get '/yaml/:cluster/:host' do
+      content_type "text/x-yaml"
+      Host.find_by_name_and_cluster(params[:host], params[:cluster]).report.to_yaml
     end
 
     get '/check/:check/?' do
@@ -61,7 +62,6 @@ module Dash
 
     get '/host/:cluster/:host/?' do
       @host = Host.find_by_name_and_cluster(params[:host], params[:cluster])
-      @report = @@reports.find { |r| r[:host] == params[:host] }
       erb :host
     end
 
