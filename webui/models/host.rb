@@ -66,7 +66,6 @@ module Dash::Models
     end
 
     def initialize(yaml)
-      puts yaml.class
       # needed to disambiguate
       super(yaml[:host]+'.'+yaml[:cluster])
       @hostname = yaml[:host]
@@ -104,9 +103,9 @@ module Dash::Models
       if @params[:host_sort] == "builtin"
         return key <=> other.key
       elsif @params[:host_sort] == "numeric"
-        regex = /\d+/
-        match = @name.match(regex)
-        match2 = other.name.match(regex)
+        regexp = /\d+/
+        match = @name.match(regexp)
+        match2 = other.name.match(regexp)
         if match.pre_match != match2.pre_match
           return match.pre_match <=> match2.pre_match
         else

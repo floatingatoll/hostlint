@@ -2,7 +2,6 @@
   <head><%= css_url %></head>
   <body>
     <div id="wrap">
-
       <div id="nav">
         <ul>
           <li><a href="/">overview</a></li>
@@ -28,13 +27,12 @@
           Jump to Host:
           <br>
           <%= hosts_selector(@hosts) %>
-          <br>
-          <br>
         </ul>
       </div>
 
 
       <div id="main">
+        <%= erb :"partials/search" %>
         <%= yield %>
       </div>
 

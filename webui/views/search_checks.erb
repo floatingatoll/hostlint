@@ -1,0 +1,7 @@
+<h3>checks matching /<%= params["keyword"] %>/</h3>
+
+<% @checks.each do |c| %>
+<div>
+  <%= checklink(c) %>  <%= stats_helper(c) %>
+</div>
+<% end %>

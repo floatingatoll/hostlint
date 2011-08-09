@@ -1,0 +1,25 @@
+<h2>search results for /<%= params["keyword"] %>/</h2>
+
+<h3>hosts</h3>
+<% @match_hosts.each do |h| %>
+<div>
+  <%= hostlink(h) %> <%= host_helper(h) %>
+</div>
+<% end  %>
+
+<h3>checks</h3>
+<% @checks.each do |c| %>
+<div>
+  <%= checklink(c) %>  <%= stats_helper(c) %>
+</div>
+<% end %>
+
+<h3>reports</h3>
+<% @reports.each do |host, checks| %>
+<div>
+  <% checks.each do |c| %>
+  <%= hostlink(host) %>::<%= checklink(c.name) %> <%= status(c.status) %>
+  <pre><%= c.body %></pre>
+  <% end %>  
+</div>
+<% end %>

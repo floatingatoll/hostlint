@@ -80,6 +80,29 @@ module Dash
       erb :status
     end
 
+    get '/search' do
+      regexp = Regexp.new(params["keyword"], Regexp::IGNORECASE)
+      case params["cat"]
+      when "0" # all
+        @reports = @hosts.map do |h|
+          [h, h.checks.find_all { |c| c.match(regexp) }]
+        end.find_all { |h, c| c }
+        @match_hosts = @hosts.find_all { |h| h.name =~ regexp }
+        @checks = Host.checks.find_all { |h| h.to_s =~ regexp }
+        erb :"search_all"
+      when "1" # hosts
+        @match_hosts = @hosts.find_all { |h| h.name =~ regexp }
+        erb :"search_host"
+      when "2" # checks
+        @checks = Host.checks.find_all { |c| c.match(regexp) }
+        erb :"search_checks"
+      when "3" # failing
+        params["keyword"]
+      when "4" # succeeding
+        params["keyword"]
+      end
+    end
+
   end
 end
 

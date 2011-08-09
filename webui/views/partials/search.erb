@@ -1,1 +1,18 @@
-[regexp search][all,hosts,checks,failing,succeeding]
+<form name="search_cat_bar" method="get" action="/search">
+  <table width="700" border="0" cellpadding="3">
+    <tr>
+      <td>
+        Search:<input type="text" name="keyword" size="30" maxlength="50"> in 
+        <select name="cat" size="1">
+          <option value="0">all
+          <option value="1">hosts
+          <option value="2">checks
+          <option value="3">failing
+          <option value="4">succeeding
+        </select>
+        <input type="submit" value="Find">
+      </td>
+    </tr>
+  </table>
+</form>
+
