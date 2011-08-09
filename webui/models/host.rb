@@ -52,11 +52,11 @@ module Dash::Models
     end
 
     def checks_failing
-      @status_map[FAIL]
+      @status_map[FAIL]||[]
     end
 
     def checks_succeeding
-      @status_map[OK]
+      @status_map[OK]||[]
     end
 
     # hacks
