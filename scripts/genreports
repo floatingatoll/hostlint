@@ -15,6 +15,9 @@ clusters.times do |i|
   hosts.times do |j|
     a[:cluster] = "cluster#{i}"
     a[:host] = "host#{j}"
+    a[:checks].each do |c|
+      c.values.first[:status] = rand(2) == 0 ? "OK" : "FAIL"
+    end
     req = Net::HTTP::Post.new('/')
     req.body = a.to_yaml
     req.content_type = "application/x-yaml"
