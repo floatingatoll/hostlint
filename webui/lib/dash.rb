@@ -75,14 +75,17 @@ module Dash
       erb :view
     end
 
-    # fixme include timetamp in filename
+    # fixme server the file on disk instead of this
     get '/yaml/:cluster/:host' do
       content_type "text/x-yaml"
-      Host.find_by_name_and_cluster(params[:host], params[:cluster]).report.to_yaml
+      Host.find_by_name_and_cluster(params[:host],
+                            params[:cluster]).report.to_yaml
     end
 
     get '/check/:check/?' do
-      raise "check not found #{params[:check]}" unless Host.check_map[params[:check].to_sym]
+      unless Host.check_map[params[:check].to_sym]
+        raise "check not found #{params[:check]}"
+      end
       @check = params[:check].to_sym
       erb :check
     end
