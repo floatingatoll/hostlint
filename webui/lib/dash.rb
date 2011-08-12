@@ -16,6 +16,7 @@ require "optparse"
 require "thread"
 require "set"
 require "rubyfixes"
+require "fileutils"
 
 # map of STATUS => host::check
 module Dash
@@ -33,18 +34,33 @@ module Dash
     hosts = Set.new
     clusters = Set.new
 
+    # fixme relative to config file
+    Dir.glob(File.join(config.report_dir, "/**/*")).each do |f|
+      if File.file?(f)
+        puts "loading #{f}"
+        r = YAML.load(File.read(f))
+        hosts << Host.new(r)
+        clusters << r[:cluster]
+      end
+    end
+
     post '/' do
       puts 'processing data...'
       reports << request.body.string
       reports.each do |y|
         r = YAML.load(y)
-        # File.open(
-        #      File.join(@log_dir,
-        #           "hostlint-report#{Time.now.strftime('%Y%m%d')}.yml"), "w") do |f|
-        #   f.puts y
-        # end
-        hosts << Host.new(r)
-        clusters << r[:cluster]
+        h = Host.new(r)
+        c = r[:cluster]
+        hosts << h
+        clusters << c
+        d = File.join(settings.config.report_dir, c, h.name)
+        fname = File.join(d, "#{Time.now.strftime('%Y%m%d')}.yml")
+        FileUtils.mkdir_p(d)
+        # currently overwrites
+        puts "writing #{fname}"
+        File.open(fname, "w") do |f|
+          f.puts y
+        end
       end
       reports.pop
     end

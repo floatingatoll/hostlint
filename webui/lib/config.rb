@@ -36,7 +36,6 @@ module Dash
         end
       end
       @report_dir = @global_config[:report_dir]
-      puts 'done!'
     end
   end # Dash::Config
 end # Dash
