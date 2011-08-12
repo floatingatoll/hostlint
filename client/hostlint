@@ -2,8 +2,6 @@
 ###############################################################################
 # hostlint-client
 ###############################################################################
-# raise "need to run as root" unless Process.euid == 0
-
 require "thread"
 require "optparse"
 require "yaml"
@@ -72,19 +70,24 @@ optparse = OptionParser.new do |o|
       "#{severity}: #{msg}\n"
     end
   end
+  o.on("-u", "--user-mode",
+    "Allow an arbitrary user to run hostlint") do
+    @user_run = true
+  end
 end
 
 optparse.parse!
 
+abort "need to run as root (or -u)" unless @user_run || Process.euid == 0
 logd "parsed command line"
 
 @config_file ||= "hostlint.yml"
 
-raise "config file not found: #{@config}" unless File.exists?(@config_file)
+abort "config file not found: #{@config}" unless File.exists?(@config_file)
 
 conf = YAML.load(File.read(@config_file))
 
-raise "no :main key in #{@config_file}" unless conf[:main]
+abort "no :main key in #{@config_file}" unless conf[:main]
 
 @check_dir ||= conf[:main][:check_dir]
 @log_dir   ||= conf[:main][:log_dir]
@@ -92,8 +95,8 @@ raise "no :main key in #{@config_file}" unless conf[:main]
 @cluster     = conf[:main][:colo]
 @jobs      ||= 1
 
-raise "#{@check_dir} not a directory" unless File.directory?(@check_dir)
-raise "#{@log_dir} not a directory" unless File.directory?(@log_dir)
+abort "#{@check_dir} not a directory" unless File.directory?(@check_dir)
+abort "#{@log_dir} not a directory" unless File.directory?(@log_dir)
 
 logd "info:\n\tcheck_dir: #{@check_dir}" +
   "\n\tlog_dir: #{@log_dir}"+ "\n\thost: #{@host}" +
