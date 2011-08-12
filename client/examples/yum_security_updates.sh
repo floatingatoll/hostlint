@@ -1,5 +1,5 @@
 #!/bin/bash
-# requirith yum-plug-in-security
+# requirith yum-plugin-security
 
 output="$(yum --security check-update 2>/dev/null)"
 
