@@ -2,6 +2,7 @@
 # host
 ###############################################################################
 require "models/base"
+require "set"
 
 module Dash::Models
   class Host < Base

@@ -1,14 +1,18 @@
-#!/usr/bin/env ruby
 ###############################################################################
 # hostlint-server
 ###############################################################################
 require "rubygems"
 require "namespace"
 
-require "rack"
-require "sinatra/base"
+require "config"
+require "erb"
 require "helpers"
 require "models"
+require "rack"
+require "sinatra/base"
+require "open-uri"
+require "yaml"
+require "optparse"
 require "thread"
 require "set"
 require "rubyfixes"
@@ -18,6 +22,8 @@ module Dash
   class App < Sinatra::Base
     include Dash::Models
     helpers Dash::Helpers
+    set :config, Dash::Config.new
+    set :port, config.global_config[:port]
     set :run, true
     set :root, File.dirname(__FILE__)
     set :static, true
@@ -32,6 +38,11 @@ module Dash
       reports << request.body.string
       reports.each do |y|
         r = YAML.load(y)
+        # File.open(
+        #      File.join(@log_dir,
+        #           "hostlint-report#{Time.now.strftime('%Y%m%d')}.yml"), "w") do |f|
+        #   f.puts y
+        # end
         hosts << Host.new(r)
         clusters << r[:cluster]
       end
@@ -117,8 +128,5 @@ module Dash
 
   end
 end
-
-puts "let's get rready to rrrumble!"
-Rack::Handler::Mongrel.run(Dash::App, :Port => 9998)
 
 ###############################################################################

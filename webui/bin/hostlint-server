@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+$: << File.dirname($0) + "/../lib"
+
+require File.join(File.dirname(__FILE__), "..", "VERSION")
+require "dash"
+
+STDOUT.puts "hostlint v#{HOSTLINT_VERSION} on port #{Dash::App.port}, PID #{$$}"
+
+Rack::Handler::Mongrel.run(Dash::App, :Port => Dash::App.port)

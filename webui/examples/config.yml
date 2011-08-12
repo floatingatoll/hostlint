@@ -1,0 +1,3 @@
+---
+:main:
+  :report_dir: "./reports" # where to store reports
