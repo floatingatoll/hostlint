@@ -37,7 +37,7 @@ module Dash
     # fixme relative to config file
     Dir.glob(File.join(config.report_dir, "/**/*")).each do |f|
       if File.file?(f)
-        puts "loading #{f}"
+        puts "load #{f}"
         r = YAML.load(File.read(f))
         hosts << Host.new(r)
         clusters << r[:cluster]
