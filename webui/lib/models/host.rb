@@ -14,11 +14,11 @@ module Dash::Models
 
     class << self
       def hosts_failing(check)
-        @@check_map[check][FAIL]||[]
+        @@check_map[check][FAIL]||Set.new
       end
 
       def hosts_succeeding(check)
-        @@check_map[check][OK]||[]
+        @@check_map[check][OK]||Set.new
       end
 
       def checks
@@ -82,7 +82,7 @@ module Dash::Models
         @status_map[c.status] << c
 
         @@check_map[c.name]||= {}
-        @@check_map[c.name][c.status]||= []
+        @@check_map[c.name][c.status]||= Set.new
         @@check_map[c.name][c.status] << self
 
         @@checks << c.name
