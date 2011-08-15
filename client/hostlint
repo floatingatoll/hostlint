@@ -107,7 +107,7 @@ class Main
     abort "no :main key in #{@config_file}" unless @conf[:main]
 
     @check_dir  ||= @conf[:main][:check_dir]
-    @host         = @conf[:main][:host]
+    @host         = @conf[:main][:host] || %x[hostname | cut -d'.' -f 1].chomp
     @cluster      = @conf[:main][:colo]
     @transports   = @conf[:main][:transports]
     @jobs       ||= 1
