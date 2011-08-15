@@ -16,9 +16,9 @@ module Dash::Helpers
     return v
   end
 
-  def status(str)
-    j = str =~ Regexp.new(Host::OK) ? "ok" : "fail"
-    "<#{j}>#{str}</#{j}> #{bugzilla_link if j=="fail" }"
+  def status(check)
+    j = check.status == Host::OK ? "ok" : "fail"
+    "<#{j}>#{check.status}</#{j}> #{bugzilla_link(check) if j=="fail" }"
   end
 
   def css_url
@@ -28,8 +28,21 @@ module Dash::Helpers
     %Q[<link href="/style.css?#{mtime}" rel="stylesheet" type="text/css">]
   end
 
-  def bugzilla_link(something=nil)
-    "<a href=\"\" style=\"font-size:small;\">file a bug</a>"
+  def bugzilla_link(check)
+    # info should have host, cluster, report_time
+    url = settings.config.global_config[:bugzilla_url]
+    fields = { :short_desc => "hostlint bug!!!! [id] etc #{check.host}.#{check.cluster}",
+      :comment => check.body,
+      :keyword => ""
+    }
+    url_parts = []
+    fields.each do |k, v|
+      [v].flatten.each do |v|
+        url_parts << "#{URI.escape(k.to_s)}=#{URI.escape(v.to_s)}"
+      end
+    end
+    url += "&" + url_parts.join("&")
+    "<a href=\"#{url}\" target=\"_blank\" style=\"font-size:small;\">file a bug</a>"
   end
 
   def hostlink(host)

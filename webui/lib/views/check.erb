@@ -11,7 +11,7 @@ end %>
 <% if failing.size > 0 %>
 <div id="failing">
   <% failing.each do |h| %>
-  <%= hostlink(h) %> <%= status(Host::FAIL) %>
+  <%= hostlink(h) %> <%= status(h.check(@check)) %>
   <br>
   <% if h.check(@check).body.size > 0 %>
   <pre><%= h.check(@check).body %></pre>
@@ -23,7 +23,7 @@ end %>
 <% if succeeding.size > 0 %>
 <div id="succeeding">
   <% succeeding.each do |h| %>
-  <%= hostlink(h) %> <%= status(Host::OK) %>
+  <%= hostlink(h) %> <%= status(h.check(@check)) %>
   <br>
   <% if h.check(@check).body.size > 0 %>
   <pre><%= h.check(@check).body %></pre>

@@ -2,7 +2,7 @@
 
 <div id="failing">
   <% @host.checks_failing.each do |c| %>
-  <%= checklink(c.name) %> <%= status(c.status) %>
+  <%= checklink(c.name) %> <%= status(c) %>
   <pre>
     <%= c.body %>
   </pre>
@@ -11,7 +11,7 @@
 
 <div id="succeeding">
   <% @host.checks_succeeding.each do |c| %>
-  <%= checklink(c.name) %> <%= status(c.status) %>
+  <%= checklink(c.name) %> <%= status(c) %>
   <pre>
     <%= c.body %>
   </pre>

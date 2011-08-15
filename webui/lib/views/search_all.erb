@@ -18,7 +18,7 @@
 <% @reports.each do |host, checks| %>
 <div>
   <% checks.each do |c| %>
-  <%= hostlink(host) %>::<%= checklink(c.name) %> <%= status(c.status) %>
+  <%= hostlink(host) %>::<%= checklink(c.name) %> <%= status(c) %>
   <pre><%= c.body %></pre>
   <% end %>  
 </div>

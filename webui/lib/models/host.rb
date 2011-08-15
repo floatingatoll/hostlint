@@ -74,8 +74,12 @@ module Dash::Models
       super(yaml[:host]+'.'+yaml[:cluster])
       @hostname = yaml[:host]
       @cluster = yaml[:cluster]
+      @report_time = yaml[:date]
       @report = yaml
-      @checks = report[:checks].map { |c| Check.new(c) }
+      @checks = report[:checks].map do |c|
+        Check.new(c, :host => @hostname,
+              :cluster => @cluster, :report_time => @report)
+      end
       @status_map = {}
       @checks.each do |c|
         @status_map[c.status] ||= []
@@ -87,7 +91,6 @@ module Dash::Models
 
         @@checks << c.name
       end
-      @report_time = yaml[:date]
     end
 
     def key
