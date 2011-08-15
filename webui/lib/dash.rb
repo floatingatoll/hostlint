@@ -17,8 +17,8 @@ require "thread"
 require "set"
 require "rubyfixes"
 require "fileutils"
+require "digest/sha1"
 
-# map of STATUS => host::check
 module Dash
   class App < Sinatra::Base
     include Dash::Models
