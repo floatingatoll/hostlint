@@ -2,13 +2,16 @@
 ###############################################################################
 # hostlint-client
 ###############################################################################
+require "rubygems"
+require "open4"
+
 require "thread"
 require "optparse"
 require "yaml"
 require "logger"
 require "stringio"
-require "rubygems"
-require "open4"
+require "csv"
+require 'net/http'
 
 ###############################################################################
 # monkeypatch etc.
@@ -17,7 +20,7 @@ require "open4"
 module Enumerable
   # asynchronous each (requiring a finite collection)
   # test case:  (1..100).each_with_threads(0) {|x| sleep rand(); puts x}
-  def each_with_threads (max_threads=1)
+  def each_with_threads(max_threads=1)
     size = 0 #lame
     q = Queue.new
     self.each {|x| q.enq(x); size += 1}
@@ -26,9 +29,15 @@ module Enumerable
     end
     threads = []
     max_threads.times do
-      threads << Thread.new {while !q.empty?; yield q.deq end}
+      threads << Thread.new {until q.empty?; yield q.deq end}
     end
     threads.each {|thr| thr.join}
+  end
+end
+
+class Symbol
+  def to_proc
+    Proc.new { |x| x.send(self) }
   end
 end
 
@@ -41,149 +50,185 @@ class Queue
   end
 end
 
-def logd (string) @logger.add(Logger::DEBUG, string, "")  if @verbose ; end
-def logi (string) @logger.add(Logger::INFO,  string, " ") if @verbose ; end
-def loge (string) @logger.add(Logger::ERROR, string, "")  if @verbose ; end
-def logw (string) @logger.add(Logger::WARN,  string, " ") if @verbose ; end
-
-###############################################################################
-# parse configuration
-###############################################################################
-
-optparse = OptionParser.new do |o|
-  o.on("-c", "--config-file FILE",
-    "Specifies the location of the config file.") do |arg|
-    @config_file = arg
-  end
-  o.on("-d", "--check-dir DIR",
-    "Specifies the directory of checks to run.") do |arg|
-    @check_dir = arg
-  end
-  o.on("-j", "--jobs N",
-    "Specifies the number of jobs (checks) to run simultaneously. (0 for unbounded)") do |arg|
-    @jobs = arg.to_i
-  end
-  o.on("-v", "--verbose", "Print debugging information") do # levels
-    @verbose = true
-    @logger = Logger.new(STDOUT)
-    @logger.formatter = proc do |severity, datetime, progname, msg|
-      "#{severity}: #{msg}\n"
-    end
-  end
-  o.on("-u", "--user-mode",
-    "Allow an arbitrary user to run hostlint") do
-    @user_run = true
-  end
-end
-
-optparse.parse!
-
-abort "need to run as root (or -u)" unless @user_run || Process.euid == 0
-logd "parsed command line"
-
-@config_file ||= "hostlint.yml"
-
-abort "config file not found: #{@config}" unless File.exists?(@config_file)
-
-conf = YAML.load(File.read(@config_file))
-
-abort "no :main key in #{@config_file}" unless conf[:main]
-
-@check_dir ||= conf[:main][:check_dir]
-@log_dir   ||= conf[:main][:log_dir]
-@host        = conf[:main][:host]
-@cluster     = conf[:main][:colo]
-@jobs      ||= 1
-
-abort "#{@check_dir} not a directory" unless File.directory?(@check_dir)
-abort "#{@log_dir} not a directory" unless File.directory?(@log_dir)
-
-logd "info:\n\tcheck_dir: #{@check_dir}" +
-  "\n\tlog_dir: #{@log_dir}"+ "\n\thost: #{@host}" +
-  "\n\tcluster: #{@cluster}\n\tjobs: #{@jobs}"
+def logd(string) @logger.add(Logger::DEBUG, string, "")  if @verbose ; end
+def logi(string) @logger.add(Logger::INFO,  string, " ") if @verbose ; end
+def loge(string) @logger.add(Logger::ERROR, string, "")  if @verbose ; end
+def logw(string) @logger.add(Logger::WARN,  string, " ") if @verbose ; end
 
 ###############################################################################
 # main logic
 ###############################################################################
 
-def parse_output (str)
-  parse = str.match(/([^:]+)\s*:\s*\[(OK|FAIL)\]/)
-  parse or raise "can't parse"
-  [parse[1], parse[2]]
-end
+class Main
+  def inner_parse(str)
+  end
 
-def fail_report (fname, status, out, err)
-  {:filename => fname,
-    :status => status.exitstatus,
-    :stdout => out,
-    :stderr => err}
-end
-
-def success_report
-end
-
-checks = Queue.new
-failed = Queue.new
-skipped = Queue.new
-
-logd "running hostlint checks"
-report_begin = Time.now
-
-Dir.glob("#{@check_dir}/*").each_with_threads(@jobs) do |f|
-  fname = File.basename(f)
-  if File.executable?(f)
-    out = ""
-    err = ""
-    status = Open4::popen4(f) do |pid, stdin, stdout, stderr|
-      out = stdout.read
-      err = stderr.read
+  def initialize
+    optparse = OptionParser.new do |o|
+      o.on("-c", "--config-file FILE",
+        "Specifies the location of the config file.") do |arg|
+        @config_file = arg
+      end
+      o.on("-d", "--check-dir DIR",
+        "Specifies the directory of checks to run.") do |arg|
+        @check_dir = arg
+      end
+      o.on("-j", "--jobs N",
+        "Specifies the number of jobs (checks) to run simultaneously. " +
+        "(0 for unbounded)") do |arg|
+        @jobs = arg.to_i
+      end
+      o.on("-v", "--verbose", "Print debugging information") do # levels
+        @verbose = true
+        @logger = Logger.new(STDOUT)
+        @logger.formatter = proc do |severity, datetime, progname, msg|
+          "#{severity}: #{progname}#{msg}\n"
+        end
+      end
+      o.on("-u", "--user-mode",
+        "Allow an arbitrary user to run hostlint") do
+        @user_run = true
+      end
+      # o.on("-t", "--transport method1[,method2]...",
+      #   "Set transport methods(s)\nFixme: DETAILS") do |arg|
+      #   @transports = CSV.parse(arg).flatten.map(&:to_sym)
+      # end
     end
 
-    if status.exitstatus != 0
-      loge "#{fname} failed"
-      failed.push(fail_report(fname, status, out, err))
-    elsif !err.empty?
-      logw "#{fname} output to stderr but exited normally"
-      failed.push(fail_report(fname, status, out, err))
-    else
-      logd "#{fname} completed successfully"
-      begin
-        check_name, status = parse_output(out)
-        checks.push({check_name.to_sym => {
-                        :status => status,
-                        :body => out.sub(out.first, ''),
-                      }})
-      rescue Exception => e
-        loge "failed to parse output of #{fname}"
-        failed.push(fail_report(fname, status, out, err))
+    optparse.parse!
+    abort "need to run as root (or -u)" unless @user_run || Process.euid == 0
+    logd "parsed command line"
+    @config_file ||= "hostlint.yml"
+
+    abort "config file not found: #{@config}" unless File.exists?(@config_file)
+
+    @conf = YAML.load(File.read(@config_file))
+
+    abort "no :main key in #{@config_file}" unless @conf[:main]
+
+    @check_dir  ||= @conf[:main][:check_dir]
+    @host         = @conf[:main][:host]
+    @cluster      = @conf[:main][:colo]
+    @transports   = @conf[:main][:transports]
+    @jobs       ||= 1
+
+    abort "not transport specified" unless @transports
+    abort "#{@check_dir} not a directory" unless File.directory?(@check_dir)
+
+    logd "info:\n\tcheck_dir: #{@check_dir}" +
+      "\n\thost: #{@host}\n\tcluster: #{@cluster}\n\tjobs: #{@jobs}" +
+      "\n\ttransports: #{@transports}"
+  end
+
+  def parse_output(str)
+    parse = str.match(/([^:]+)\s*:\s*\[(OK|FAIL)\]/)
+    parse or raise "can't parse"
+    [parse[1], parse[2]]
+  end
+
+  def fail_report(fname, status, out, err)
+    {:filename => fname,
+      :status => status.exitstatus,
+      :stdout => out,
+      :stderr => err}
+  end
+
+  def run
+    checks = Queue.new
+    failed = Queue.new
+    skipped = Queue.new
+
+    logd "running hostlint checks"
+    report_begin = Time.now
+
+    # should probably trap SIGINT
+    Dir.glob("#{@check_dir}/*").each_with_threads(@jobs) do |f|
+      fname = File.basename(f)
+      if File.executable?(f)
+        out = ""
+        err = ""
+        status = Open4::popen4(f) do |pid, stdin, stdout, stderr|
+          out = stdout.read
+          err = stderr.read
+        end
+
+        if status.exitstatus != 0
+          loge "#{fname} failed"
+          failed.push(fail_report(fname, status, out, err))
+        elsif !err.empty?
+          logw "#{fname} output to stderr but exited normally"
+          failed.push(fail_report(fname, status, out, err))
+        else
+          logd "#{fname} completed successfully"
+          begin
+            check_name, status = parse_output(out)
+            checks.push({check_name.to_sym => {
+                            :status => status,
+                            :body => out.sub(out.first, ''),
+                          }})
+          rescue Exception => e
+            loge "failed to parse output of #{fname}"
+            failed.push(fail_report(fname, status, out, err))
+          end
+        end
+      else
+        logw "#{fname} is not executable, skipping..."
+        skipped.push({:filename => fname,
+                       :permissions => File.stat(f).mode.to_s(8)[-4..-1]})
       end
     end
-  else
-    logw "#{fname} is not executable, skipping..."
-    skipped.push({:filename => fname,
-                   :permissions => File.stat(f).mode.to_s(8)[-4..-1]})
+
+    report_end = Time.now
+
+    checks = checks.to_ary
+    failed = failed.to_ary
+    skipped = skipped.to_ary
+
+    report = {:date => report_end, :checks => checks, :failed => failed,
+      :host => @host, :skipped => skipped, :cluster => @cluster}
+
+    # logd "report generated:\n" + report + "\n"
+
+    logi "hostlint check complete (#{report_end - report_begin} s)"
+    logi "#{checks.size + failed.size + skipped.size} checks run, " +
+      "#{checks.size} succeeded, #{failed.size} failed, #{skipped.size} skipped"
+
+    @transports.each do |t|
+      method = t.keys.first.to_sym
+      opts = t.values.first
+      logd "appyling transport method '#{method}'..."
+      send(method, report, opts)
+      logd "'#{method}' completed successfully"
+    end
+    logd "all done!"
   end
+
+  # FIXME modulify transports and check arguments /before/ running the script
+  # transports take a report and some options, and process it
+  def disk(report, opts)
+    # fixme Dirk if nonexistent
+    dir = opts[:log_dir]
+    abort "#{dir} not a directory" unless File.directory?(dir)
+    fname = "hostlint-report#{report[:date].strftime('%Y%m%d')}.yml"
+    File.open(File.join(dir, fname), "w") do |f|
+      f.puts report.to_yaml
+    end
+  end
+
+  def post(report, opts)
+    abort "missing host" unless opts[:host]
+    abort "missing port" unless opts[:port]
+    req = Net::HTTP::Post.new('/')
+    req.body = report.to_yaml
+    req.content_type = "application/x-yaml"
+    Net::HTTP.new(opts[:host], opts[:port]).start { |http| http.request(req) }
+  end
+
+  def amqp(report) abort "amqp not implemented" end
+  def email(report) abort "email implemented" end
+
 end
 
-report_end = Time.now
-
-checks = checks.to_ary
-failed = failed.to_ary
-skipped = skipped.to_ary
-
-report = {:date => report_end, :checks => checks, :failed => failed,
-  :host => @host, :skipped => skipped, :cluster => @cluster}.to_yaml
-
-# logd "report generated:\n" + report + "\n"
-
-logi "hostlint check complete (#{report_end - report_begin} s)"
-logi "#{checks.size + failed.size + skipped.size} checks run, " +
-  "#{checks.size} succeeded, #{failed.size} failed, #{skipped.size} skipped"
-
-File.open(
-     File.join(@log_dir,
-          "hostlint-report#{report_end.strftime('%Y%m%d')}.yml"), "w") do |f|
-  f.puts report
-end
+Main.new.run
 
 ###############################################################################
