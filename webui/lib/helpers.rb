@@ -38,7 +38,7 @@ module Dash::Helpers
     fields = { :short_desc => "[hostlint ##{check.hostlint_id}] " +
       "#{check.host}.#{check.cluster}: #{check.name}",
       # fixme fuck URI.join etc.
-      :comment => "hostlint link: http://#{h_url}/check/#{check.name}
+      :comment => "hostlint link: http://#{h_url}/check/#{check.name}##{check.hostlint_id}
 #{check.body}",
       :keyword => ""
     }

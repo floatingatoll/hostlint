@@ -2,19 +2,23 @@
 
 <div id="failing">
   <% @host.checks_failing.each do |c| %>
+  <div id="<%= c.hostlint_id %>">
   <%= checklink(c.name) %> <%= status(c) %>
   <pre>
     <%= c.body %>
   </pre>
+  </div>
   <% end %>
 </div>
 
 <div id="succeeding">
   <% @host.checks_succeeding.each do |c| %>
+  <div id="<%= c.hostlint_id %>">
   <%= checklink(c.name) %> <%= status(c) %>
   <pre>
     <%= c.body %>
   </pre>
+  </div>
   <% end %>
 </div>
 

@@ -8,26 +8,33 @@ else
 end %>
 <br>
 
+<!-- fixme refactor -->
 <% if failing.size > 0 %>
 <div id="failing">
-  <% failing.each do |h| %>
-  <%= hostlink(h) %> <%= status(h.check(@check)) %>
+  <% failing.each do |h|
+     check = h.check(@check) %>
+  <div id="<%= check.hostlint_id %>">
+  <%= hostlink(h) %> <%= status(check) %>
   <br>
-  <% if h.check(@check).body.size > 0 %>
-  <pre><%= h.check(@check).body %></pre>
+  <% if check.body.size > 0 %>
+  <pre><%= check.body %></pre>
   <% end %>
+  </div>
   <% end %>
 </div>
 <% end %>
 
 <% if succeeding.size > 0 %>
 <div id="succeeding">
-  <% succeeding.each do |h| %>
-  <%= hostlink(h) %> <%= status(h.check(@check)) %>
+  <% succeeding.each do |h|
+     check = h.check(@check) %>
+  <div id="<%= check.hostlint_id %>">
+  <%= hostlink(h) %> <%= status(check) %>
   <br>
-  <% if h.check(@check).body.size > 0 %>
-  <pre><%= h.check(@check).body %></pre>
+  <% if check.body.size > 0 %>
+  <pre><%= check.body %></pre>
   <% end %>
+  </div>
   <% end %>
 </div>
 <% end %>
