@@ -1,9 +1,8 @@
-<h3><%= @status == Host::OK ? "passing" : "failing" %> checks</h3>
+<h2><%= @status == Host::OK ? "passing" : "failing" %> checks</h2>
 
 <% check_status_to_hosts_map.each do |k, v| %>
-<%= k %>
+<h3><%= k %></h3>
 <% v.each do |h| %>
 <li><%= hostlink(h) %></li>
 <% end %>
-<br>
 <% end%>
