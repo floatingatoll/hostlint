@@ -5,8 +5,9 @@
 
 if [[ -d /proc/net/bonding ]]  ; then
   for file in /proc/net/bonding/* ; do
-    if grep 'eth0' $file && grep 'eth1' $file &>/dev/null ; then
+    if grep 'eth0' $file &>/dev/null && grep 'eth1' $file &>/dev/null ; then
       echo "network.ethernet.bonded: [OK]"
+      exit 0
     fi
   done
 fi
