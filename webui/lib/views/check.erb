@@ -1,4 +1,4 @@
-<h3><%= @check %></h3>
+<h2><%= @check %></h2>
 <%= failing = Host.hosts_failing(@check)
     succeeding = Host.hosts_succeeding(@check)
     if failing.size > 0
