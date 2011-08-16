@@ -29,13 +29,13 @@ Hostlint can output data in various YAML-based forms. They and their options
 are specified under the :transports key. The currently implemented ones are
 disk and post.
 
-Disk writes yaml output to the corresponding local directory.
+Disk writes yaml output to the corresponding local directory:
 
     :disk:
       :log_dir: "."
 
 
-Post posts the data to a webserver, typically hostlint-server
+Post posts the data to a webserver, typically hostlint-server:
 
     :post:
       :host: localhost
