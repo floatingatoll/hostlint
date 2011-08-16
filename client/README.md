@@ -23,7 +23,23 @@ rubygem open4
 
 * :check_dir: directory of scripts to run
 
-* :log_dir: where to output yaml report file
+### Transports
+
+Hostlint can output data in various YAML-based forms. They and their options
+are specified under the :transports key. The currently implemented ones are
+disk and post.
+
+Disk writes yaml output to the corresponding local directory.
+
+    :disk:
+      :log_dir: "."
+
+
+Post posts the data to a webserver, typically hostlint-server
+
+    :post:
+      :host: localhost
+      :port: 9998
 
 ## Command line options take precedence over config file ones:
 
@@ -34,3 +50,5 @@ rubygem open4
 * -j N    run N jobs
 
 * -v      print debugging information
+
+* -u      allow running as a regular user
