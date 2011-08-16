@@ -11,7 +11,7 @@ Gem::Specification.new do |spec|
   spec.name = "hostlint-server"
   spec.version = HOSTLINT_VERSION
   spec.summary = "hostlint -- lint for hosts"
-  spec.description = ""
+  spec.description = "hostlint webui"
   spec.license = "Mozilla Public License (1.1)"
 
   spec.add_dependency("mongrel")
