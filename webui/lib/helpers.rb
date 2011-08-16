@@ -28,16 +28,18 @@ module Dash::Helpers
     %Q[<link href="/style.css?#{mtime}" rel="stylesheet" type="text/css">]
   end
 
-  def hostlint_id (check)
-    Digest::SHA1.hexdigest("#{check.name}#{check.host}#{check.cluster}")[0..5]
+  def aggregate_bugzilla
   end
 
   def bugzilla_link(check)
     # info should have host, cluster, report_time
     url = settings.config.global_config[:bugzilla_url]
-    fields = { :short_desc => "[hostlint ##{hostlint_id(check)}] " +
+    h_url = settings.config.global_config[:hostlint_url]
+    fields = { :short_desc => "[hostlint ##{check.hostlint_id}] " +
       "#{check.host}.#{check.cluster}: #{check.name}",
-      :comment => check.body,
+      # fixme fuck URI.join etc.
+      :comment => "hostlint link: http://#{h_url}/check/#{check.name}
+#{check.body}",
       :keyword => ""
     }
     url_parts = []

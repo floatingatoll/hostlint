@@ -24,6 +24,10 @@ module Dash::Models
     def to_s
       "#{name} #{status}:\n#{body}"
     end
+
+    def hostlint_id
+      Digest::SHA1.hexdigest("#{name}#{host}#{cluster}")[0..5]
+    end
   end
 end
 

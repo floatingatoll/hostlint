@@ -33,7 +33,7 @@ module Dash
     def reload!
       @global_config = YAML.load(File.read(@conf_file))[:main]
       # do some sanity checking of other configuration parameters
-      [:report_dir, :bugzilla_url].each do |c|
+      [:report_dir, :bugzilla_url, :hostlint_url].each do |c|
         if not @global_config[c]
           raise "Missing config name '#{c.to_s}'"
         end
