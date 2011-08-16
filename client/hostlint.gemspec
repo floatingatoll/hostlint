@@ -14,7 +14,7 @@ Gem::Specification.new do |spec|
   spec.description = "hostlint client"
   spec.license = "Mozilla Public License (1.1)"
 
-  spec.add_dependency("popen4")
+  spec.add_dependency("open4")
 
   spec.files = files
   spec.bindir = "bin"
