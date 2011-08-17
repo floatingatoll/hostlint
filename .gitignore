@@ -1,0 +1,4 @@
+webui/examples/reports/*
+*.gem
+local
+client/hostlint-report*.yml
