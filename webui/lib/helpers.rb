@@ -18,7 +18,7 @@ module Dash::Helpers
 
   def status(check)
     j = check.status == Host::OK ? "ok" : "fail"
-    "<#{j}>#{check.status}</#{j}> #{bugzilla_link(check) if j=="fail" }"
+    "<#{j}>#{check.status}</#{j}> #{bugzilla_link(check) if j=="fail" } #{bugzilla_search_link(check) if j=="fail" }"
   end
 
   def css_url
@@ -28,6 +28,7 @@ module Dash::Helpers
     %Q[<link href="/style.css?#{mtime}" rel="stylesheet" type="text/css">]
   end
 
+  # fixme refactor
   def aggregate_bugzilla(check)
     url = settings.config.global_config[:bugzilla_url]
     h_url = settings.config.global_config[:hostlint_url]
@@ -46,15 +47,15 @@ See http://#{h_url}/check/#{check}",
     end
     url += "&" + url_parts.join("&")
     "<a href=\"#{url}\" target=\"_blank\" style=\"font-size:small;\">file a bug</a>"
-
   end
 
   def bugzilla_link(check)
     # info should have host, cluster, report_time
     url = settings.config.global_config[:bugzilla_url]
     h_url = settings.config.global_config[:hostlint_url]
-    fields = { :short_desc => "[hostlint ##{check.hostlint_id}] " +
-      "#{check.host}.#{check.cluster}: #{check.name}",
+    desc = "[hostlint ##{check.hostlint_id}] " +
+      "#{check.host}.#{check.cluster}: #{check.name}"
+    fields = { :short_desc => desc,
       # fixme fuck URI.join etc.
       :comment => "hostlint link: http://#{h_url}/check/#{check.name}##{check.hostlint_id}
 #{check.body}",
@@ -68,6 +69,21 @@ See http://#{h_url}/check/#{check}",
     end
     url += "&" + url_parts.join("&")
     "<a href=\"#{url}\" target=\"_blank\" style=\"font-size:small;\">file a bug</a>"
+  end
+
+  def bugzilla_search_link(check)
+    url = settings.config.global_config[:bugzilla_search_url]
+    desc = "[hostlint ##{check.hostlint_id}] " +
+      "#{check.host}.#{check.cluster}: #{check.name}"
+    fields = { :short_desc => desc }
+    url_parts = []
+    fields.each do |k, v|
+      [v].flatten.each do |v|
+        url_parts << "#{URI.escape(k.to_s)}=#{URI.escape(v.to_s)}"
+      end
+    end
+    url += "&" + url_parts.join("&")
+    "<a href=\"#{url}\" target=\"_blank\" style=\"font-size:small;\">search</a>"
   end
 
   def hostlink(host)
