@@ -2,23 +2,24 @@
 <%= failing = Host.hosts_failing(@check)
     succeeding = Host.hosts_succeeding(@check)
     if failing.size > 0
-"#{failing.size}/#{failing.size + succeeding.size} hosts failing"
+"#{failing.size}/#{failing.size + succeeding.size} hosts failing " +
+aggregate_bugzilla(@check)
 else
 "all hosts pass"
 end %>
 <br>
-
+<br>
 <!-- fixme refactor -->
 <% if failing.size > 0 %>
 <div id="failing">
   <% failing.each do |h|
      check = h.check(@check) %>
   <div id="<%= check.hostlint_id %>">
-  <%= hostlink(h) %> <%= status(check) %>
-  <br>
-  <% if check.body.size > 0 %>
-  <pre><%= check.body %></pre>
-  <% end %>
+    <%= hostlink(h) %> <%= status(check) %>
+    <br>
+    <% if check.body.size > 0 %>
+    <pre><%= check.body %></pre>
+    <% end %>
   </div>
   <% end %>
 </div>
@@ -29,11 +30,11 @@ end %>
   <% succeeding.each do |h|
      check = h.check(@check) %>
   <div id="<%= check.hostlint_id %>">
-  <%= hostlink(h) %> <%= status(check) %>
-  <br>
-  <% if check.body.size > 0 %>
-  <pre><%= check.body %></pre>
-  <% end %>
+    <%= hostlink(h) %> <%= status(check) %>
+    <br>
+    <% if check.body.size > 0 %>
+    <pre><%= check.body %></pre>
+    <% end %>
   </div>
   <% end %>
 </div>

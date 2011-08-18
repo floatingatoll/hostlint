@@ -28,7 +28,25 @@ module Dash::Helpers
     %Q[<link href="/style.css?#{mtime}" rel="stylesheet" type="text/css">]
   end
 
-  def aggregate_bugzilla
+  def aggregate_bugzilla(check)
+    url = settings.config.global_config[:bugzilla_url]
+    h_url = settings.config.global_config[:hostlint_url]
+    failing = Host.hosts_failing(@check)
+    succeeding = Host.hosts_succeeding(@check)
+    fields = { :short_desc => "[hostlint] hosts failing #{check}",
+      :comment => "#{failing.size}/#{failing.size + succeeding.size} hosts failing at report time (#{Time.now}).
+See http://#{h_url}/check/#{check}",
+      :keyword => ""
+    }
+    url_parts = []
+    fields.each do |k, v|
+      [v].flatten.each do |v|
+        url_parts << "#{URI.escape(k.to_s)}=#{URI.escape(v.to_s)}"
+      end
+    end
+    url += "&" + url_parts.join("&")
+    "<a href=\"#{url}\" target=\"_blank\" style=\"font-size:small;\">file a bug</a>"
+
   end
 
   def bugzilla_link(check)

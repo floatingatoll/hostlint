@@ -1,4 +1,4 @@
-<h2><%= @status == Host::OK ? "passing" : "failing" %> checks</h2>
+<h2>hosts <%= @status == Host::OK ? "passing" : "failing" %> checks</h2>
 
 <% check_status_to_hosts_map.each do |k, v| %>
 <h3><%= k %></h3>
