@@ -46,7 +46,7 @@ See http://#{h_url}/check/#{check}",
       end
     end
     url += "&" + url_parts.join("&")
-    "<a href=\"#{url}\" target=\"_blank\" style=\"font-size:small;\">file a bug</a>"
+    "<a href=\"#{url}\" target=\"_blank\" style=\"font-size:small;\">file an aggregate bug</a>"
   end
 
   def bugzilla_link(check)
